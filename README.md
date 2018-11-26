@@ -1,6 +1,6 @@
-# Texile's IPFS ĐApp Template
+# Texile's IPFS profile app
 
-> Basic profile over IPFS/IPNS
+> Basic user profile over IPFS/IPNS
 
 ## Install
 
