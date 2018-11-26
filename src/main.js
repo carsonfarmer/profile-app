@@ -4,9 +4,9 @@ import 'babel-polyfill'
 import qs from 'query-string'
 import ko from 'knockout'
 import 'knockout-mapping'
-import $ from 'jQuery'
 import getIpfs from './ipfs-promise'
 import { defaultProfile } from './default-profile'
+import $ from 'jQuery'
 
 // Special handler for contenteditable elements
 // Comes from:
@@ -78,12 +78,12 @@ const setup = async () => {
     const query = qs.parse(location.search)
     // Grab id of this IPFS peer, to check if we're viewing our own profile
     const id = await ipfs.id()
-    // IPNS id that we will use to request profile information
-    const ipns = query.pid ? query.pid : id.id
+    // User id that we will use to request profile information
+    const user = query.user ? query.user : id.id
 
     // Some reporting to help us when developing
-    console.log(`Viewing profile for ${ipns} from peer with id ${id.id}`)
-    if (ipns === id.id) {
+    console.log(`Viewing profile for ${user} from peer with id ${id.id}`)
+    if (user === id.id) {
       console.log('Viewing own profile, editing will be enabled!')
     }
     // Setup a viewModel based on our JSON structure
@@ -101,13 +101,20 @@ const setup = async () => {
       if (editing) {
         // Export viewModel to JSON
         const json = ko.mapping.toJSON(viewModel)
-        // IPFS add options, currently just defaults + dir wrapping
-        const options = { wrapWithDirectory: true, onlyHash: false, pin: true }
+        // IPFS add options
+        const options = {
+          wrapWithDirectory: true,
+          onlyHash: false,
+          pin: true
+        }
         // Create binary buffer from JSON string
         const buf = Buffer.from(json)
         try {
           // Add the new file (same as on desktop)
-          const res = await ipfs.files.add({ path: 'json', content: buf }, options)
+          const res = await ipfs.files.add({
+            path: 'json',
+            content: buf
+          }, options)
           // Publish new file to peer's PeerID
           const pub = await ipfs.name.publish(res[1].hash)
           console.log(`published '${pub.value}' to profile: ${pub.name}`)
@@ -139,7 +146,7 @@ const setup = async () => {
 
     try {
       // Get profile information if available
-      const data = await getProfileJSON(ipfs, ipns)
+      const data = await getProfileJSON(ipfs, user)
       // Update our existing viewModel target
       ko.mapping.fromJS(data, viewModel)
     } catch (err) {
